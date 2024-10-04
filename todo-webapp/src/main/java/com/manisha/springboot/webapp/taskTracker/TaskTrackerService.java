@@ -9,24 +9,26 @@ import org.springframework.stereotype.Service;
 
 import jakarta.validation.Valid;
 
-@Service
+//@Service
 public class TaskTrackerService {
-	// create a list of static TaskTracker objects to test the functionality
-	private static List<TaskTracker> tasks = new ArrayList<>();
 	
+	// create a list of static TaskTracker objects for development and feature testing
+	private static List<TaskTracker> tasks = new ArrayList<>();
 	private static int taskCount = 0;
 	static {
-		tasks.add(new TaskTracker(++taskCount, "in28minutes","Learn AWS Practitioner", 
+		tasks.add(new TaskTracker(++taskCount, "Ambe","Learn AWS Practitioner -Static", 
 							LocalDate.now().plusYears(1), false ));
-		tasks.add(new TaskTracker(++taskCount, "in28minutes","Learn DevOps", 
+		tasks.add(new TaskTracker(++taskCount, "Durga","Learn DevOps - Static", 
 				LocalDate.now().plusYears(2), false ));
-		tasks.add(new TaskTracker(++taskCount, "in28minutes","Learn Full Stack Development", 
+		tasks.add(new TaskTracker(++taskCount, "Sharda","Learn Full Stack Development - Static", 
 				LocalDate.now().plusYears(3), false ));
 	}
 	
-	//Define a method to return the tasks specific to a user
+	//Define a method to return the tasks corresponding to a username
 	public List<TaskTracker> findByUsername(String username){
-		return tasks;
+		Predicate<? super TaskTracker> predicate = 
+				taskTracker -> taskTracker.getUsername().equalsIgnoreCase(username);
+		return tasks.stream().filter(predicate).toList();
 	}
 	
 	//Define a method to add a new task to the table

@@ -2,9 +2,15 @@ package com.manisha.springboot.webapp.taskTracker;
 
 import java.time.LocalDate;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.Size;
 
+@Entity
 public class TaskTracker {
+	@Id
+	@GeneratedValue
 	private int id;
 	private String username;
 	
@@ -13,7 +19,11 @@ public class TaskTracker {
 	private String description;
 	private LocalDate targetDate; // using LocalDate is recommended over Date
 	private boolean done;
-
+	
+	public TaskTracker() {
+		super();
+	}
+	
 	public TaskTracker(int id, String username, String description, LocalDate targetDate, boolean done) {
 		super();
 		this.id = id;

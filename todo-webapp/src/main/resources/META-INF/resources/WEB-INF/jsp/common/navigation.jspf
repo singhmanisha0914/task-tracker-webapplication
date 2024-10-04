@@ -1,6 +1,6 @@
 <!-- Navigation - HTML + Bootstrap -->
 <nav class="navbar navbar-expand-md navbar-light bg-light mb-3 p-1">
-	<a class="navbar-brand m-1" href="http://localhost:8080/login">Task
+	<a class="navbar-brand m-1" href="http://localhost:8080/">Task
 		Tracker</a>
 	<div class="collapse navbar-collapse">
 		<ul class="navbar-nav">

@@ -1,5 +1,8 @@
+A webapp for tracking, adding, deleting, updating tasks.
+Springboot framework and MySql DB is used for the development of this app. Views are created using JSP files.
+
+My git repo: https://github.com/singhmanisha0914/task-tracker-webapplication.git
 Reference project - in28minutes webapp project: https://github.com/in28minutes/spring-boot-master-class/blob/master/02.Spring-Boot-Web-Application-V2/99-step-by-step-changes.md
-My git repo: 
 
 Create a spring project using spring Initializer: https://start.spring.io/
 While creating project add following dependencies: Spring Web, Spring Boot DevTools (This prevents restarting the server
@@ -359,3 +362,178 @@ We need to fix that
 
 Spring Security
 *******************
+Open pom.xml and add:
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+
+Now restart the server. we will see following log:
+default username: user
+default pwd: 00d2ddda-d483-49ce-820a-a8762d8d4663
+Using generated security password: 00d2ddda-d483-49ce-820a-a8762d8d4663
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+
+NOW ALL OUR URLS ARE PROTECTED. FOR ACCESSING ALL THE URLs WE NEED TO LOGIN NOW.
+
+ALSO BY DEFAULT, WE HAVE A WORKING LOGOUT URL.
+
+########################################################################################################
+
+Now we will configure our own spring security wherein we will have a proper user and pwd.
+Create a class SpringSecurityConfiguration.java
+
+We have defined getLoggedInUsername in both WelcomeController and TaskTrackerController because we want to capture the username even when
+the user directly open /list-tasks then session data won't be store that we are storing from the welcome page.
+###########################################################################################################
+ Adding Spring Boot Starter Data JPA and Getting H2 database ready
+
+/pom.xml Modified
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+
+<dependency>
+	<groupId>com.h2database</groupId>
+	<artifactId>h2</artifactId>
+	<scope>runtime</scope>
+</dependency>
+
+Restart the server:
+URL: http://localhost:8080/h2-console
+Manisha/dummydummy
+
+Configuring Spring Security to Get H2-console Working
+/src/main/java/com/in28minutes/springboot/myfirstwebapp/security/SpringSecurityConfiguration.java Modified
+
+BY Default there are two things that are configured by Spring Security:
+1. All URLs are protected
+2. A login form is shown for unauthorized requests.
+
+BY Default enabled by Spring Security:
+1. Cross Site Request Feature (CSRF) needs to be disabled to access H2-Console
+4. Also disable frames
+
+SecurityFilterChain: Defines a filter chain matched against every request. By default it has following two features:
+1. All URLs are protected
+2. A login form is shown for unauthorized requests.
+
+We will reconfigure it to use H2-Console
+Create filterChain() method.
+
+When we override SecurityFilterChain, we need to define entire chain again.
+
+#######################################################################################
+
+Making Todo an Entity and Population TaskTracker Data into H2
+
+/src/main/java/com/in28minutes/springboot/myfirstwebapp/todo/TaskTracker.java Modified
+
+Add to data.sql:
+insert into TASK_TRACKER (ID, USERNAME, DESCRIPTION, TARGET_DATE, DONE)
+values(10001,'Durga', 'Get AWS Certified', CURRENT_DATE(), false);
+
+insert into TASK_TRACKER (ID, USERNAME, DESCRIPTION, TARGET_DATE, DONE)
+values(10002,'Ambe', 'Get Azure Certified', CURRENT_DATE(), false);
+
+insert into TASK_TRACKER (ID, USERNAME, DESCRIPTION, TARGET_DATE, DONE)
+values(10003,'Sharda', 'Get GCP Certified', CURRENT_DATE(), false);
+
+insert into TASK_TRACKER (ID, USERNAME, DESCRIPTION, TARGET_DATE, DONE)
+values(10004,'Saraswati', 'Learn DevOps', CURRENT_DATE(), false);
+
+By default these sql queries will be executed before table is created. Therefore, add following to application.properties
+
+In Database always use single quotes.
+
+##################################################################################################
+				DOCKER INSTALLATION AND COMMANDS
+				***********************************
+Now we will use MySQL. we will be launching mysql as a docker container.
+And we will be connecting from our application to the MYsql DB.
+
+Step1: Installing docker:
+Go to https://docs.docker.com/engine/install/
+next go to https://docs.docker.com/desktop/install/windows-install/
+
+Download - Docker Desktop for Windows - x86_64
+
+Double click the installer and restart the system. Then click the docker to open.
+
+Register/sign in to docker using credentials.
+
+Now open windows powershell/mac terminal and type: #docker version
+We should see the version and other information:
+													PS C:\Users\kaush> docker version
+													Client:
+													 Version:           27.2.0
+													 API version:       1.47
+
+Now to launch MySQL using Docker, run below command:
+#docker run --detach --env MYSQL_ROOT_PASSWORD=dummypassword --env MYSQL_USER=todos-user --env MYSQL_PASSWORD=dummytodos --env MYSQL_DATABASE=todos --name mysql --publish 3306:3306 mysql:8-oracle
+
+Now to see the list of containers running:
+#docker container ls
+
+Troubleshootings that I did because I had MySql running locally on my system. Therefore the port 3306 was busy:
+***************************************************************************************************************
+First removed the created docker:
+#docker remove mysql
+
+Now changed the port from 3306 to 3307 and reran the command
+#docker run --detach --env MYSQL_ROOT_PASSWORD=dummypassword --env MYSQL_USER=tasks-user --env MYSQL_PASSWORD=dummytodos --env MYSQL_DATABASE=task_tracker --name mysql --publish 3306:3306 mysql:8-oracle
+970c7b8c4139fe7ec5a8ba20fd8b9354df7ad65d25b57e6e471440edba2b7ebc
+
+#docker container ls
+CONTAINER ID   IMAGE            COMMAND                  CREATED          STATUS          PORTS                                         NAMES
+970c7b8c4139   mysql:8-oracle   "docker-entrypoint.s…"   13 seconds ago   Up 11 seconds   3306/tcp, 33060/tcp, 0.0.0.0:3307->3307/tcp   mysql
+
+
+Now make following changes to the pom.xml:
+Step1: Comment out the H2-dependency 
+Step2: Add dependency for Mysql
+<dependency>
+    <groupId>com.mysql</groupId>
+	<artifactId>mysql-connector-j</artifactId>
+</dependency>
+
+When connecting to H2-database, spring boot automatically creates the tables for us but for real time DBs, we need to configure following property in application.properties for spring boot to create the table for us
+#spring.jpa.hibernate.ddl-auto=update
+
+data.sql is not run for real databases.
+
+
+To verify the mysql db content:
+Step1: Go to mysql shell: https://dev.mysql.com/doc/mysql-shell/8.0/en/mysqlsh.html
+then go to : Installing MySQL Shell -> https://dev.mysql.com/doc/mysql-shell/8.0/en/mysql-shell-install.html					
+			 Installing MySQL Shell on Microsoft Windows
+			 download the file and install it on the system
+Step2: open terminal/powershell/mac terminal
+Type:
+mysqlsh
+
+you should see MySQL JS prompt:
+there type:
+\connect tasks-user@localhost:3306
+
+enter password: dummytodos
+
+Step3: Now connect to the schema:
+\use task_tracker
+
+Step4: Switch to sql mode:
+\sql
+
+Step5: Now run sql commands
+select * from task_tracker;
+
+
+
+
+
+
+
+
+ 

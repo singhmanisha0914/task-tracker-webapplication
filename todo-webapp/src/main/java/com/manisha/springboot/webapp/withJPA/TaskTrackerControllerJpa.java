@@ -1,4 +1,4 @@
-package com.manisha.springboot.webapp.taskTracker;
+package com.manisha.springboot.webapp.withJPA;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,24 +12,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
+
+import com.manisha.springboot.webapp.taskTracker.TaskTracker;
+import com.manisha.springboot.webapp.taskTracker.TaskTrackerService;
+
 import jakarta.validation.Valid;
 
-//@Controller
+@Controller
 @SessionAttributes("name") //we will use this session data in listTasks.jsp
-public class TaskTrackerController {
+public class TaskTrackerControllerJpa {
 	
-	private TaskTrackerService taskTrackerService;
+	private TaskTrackerServiceJpa service;
 	
-	public TaskTrackerController(TaskTrackerService taskTrackerService) {
+	//Autowirig taskTrackerService using constructor injection
+	public TaskTrackerControllerJpa(TaskTrackerServiceJpa service) {
 		super();
-		this.taskTrackerService = taskTrackerService;
+		this.service = service;
 	}
 
 
 	@RequestMapping("/list-tasks")
 	public String listAllTasks(ModelMap model) {
 		String username = getLoggedInUsername(model);
-		List<TaskTracker> tasks = taskTrackerService.findByUsername(username);
+		List<TaskTracker> tasks = service.findByUsername(username);
 		model.addAttribute("tasks", tasks);
 		return "listTasks";
 	}
@@ -56,23 +61,22 @@ public class TaskTrackerController {
 			return "task";
 		}
 		String username = getLoggedInUsername(model);
-		//adding the taskTracker object details received from the task.jsp form
-		taskTrackerService.addTask(username, taskTracker.getDescription(), taskTracker.getTargetDate(), false);
-		//redirect:<name of the url>
-		return "redirect:list-tasks";
+		taskTracker.setUsername(username);
+		service.addTask(taskTracker);
+		return "redirect:list-tasks"; //redirect:<name of the url>
 	}
 	
 	@RequestMapping("/delete-task")
 	public String deleteTask(@RequestParam int id,ModelMap model) {
 		//Delete task with the specific id and return the new task list
-		taskTrackerService.deleteTaskById(id);
+		service.deleteTaskById(id);
 		return "redirect:/list-tasks";
 	}
 	
 	@RequestMapping(value="/update-task", method=RequestMethod.GET)
 	public String showUpdateTaskPage(@RequestParam int id,ModelMap model) {
 		//Get the task object with the specific id
-		TaskTracker taskTracker = taskTrackerService.findById(id);
+		TaskTracker taskTracker = service.findById(id);
 		model.addAttribute("taskTracker", taskTracker);
 		return "task";
 	}
@@ -84,7 +88,7 @@ public class TaskTrackerController {
 		}
 		String username= getLoggedInUsername(model);
 		taskTracker.setUsername(username);
-		taskTrackerService.updateTask(taskTracker);
+		service.updateTask(taskTracker);
 		return "redirect:list-tasks";
 	}
 
